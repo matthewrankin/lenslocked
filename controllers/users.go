@@ -7,10 +7,16 @@ import (
 	"github.com/matthewrankin/lenslocked/views"
 )
 
+// SignupForm models the data for the signup form.
+type SignupForm struct {
+	Email    string `schema:"email"`
+	Password string `schema:"password"`
+}
+
 // NewUsers handles creating a new user.
 func NewUsers() *Users {
 	return &Users{
-		NewView: views.NewView("bootstrap", "views/users/new.gohtml"),
+		NewView: views.NewView("bootstrap", "users/new"),
 	}
 }
 
@@ -33,9 +39,10 @@ func (u *Users) New(w http.ResponseWriter, r *http.Request) {
 //
 // POST /signup
 func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	var form SignupForm
+	if err := parseForm(r, &form); err != nil {
 		panic(err)
 	}
-	fmt.Fprintln(w, r.PostForm["email"])
-	fmt.Fprintln(w, r.PostForm["password"])
+	fmt.Fprintln(w, "Email is", form.Email)
+	fmt.Fprintln(w, "Password is", form.Password)
 }
