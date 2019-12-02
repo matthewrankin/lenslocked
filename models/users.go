@@ -85,15 +85,26 @@ func (us *UserService) Delete(id uint) error {
 }
 
 // DestructiveReset drops the user table and rebuilds it.
-func (us *UserService) DestructiveReset() {
-	us.db.DropTableIfExists(&User{})
-	us.db.AutoMigrate(&User{})
+func (us *UserService) DestructiveReset() error {
+	us.db.DropTableIfExists(&User{}).Error
+	if err != nil {
+		return err
+	}
+	return us.AutoMigrate()
 }
 
 // Create will create the provided user and backfill data like the ID,
 // CreatedAt, and UpdatedAt fields.
 func (us *UserService) Create(user *User) error {
 	return us.db.Create(user).Error
+}
+
+// AutoMigrate will attempt to automatically migrate the users table.
+func (us *UserService) AutoMigrate() error {
+	if err := us.db.AutoMigrate(&User{}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 // first will query using the provided gorm.DB and it will get the first item
