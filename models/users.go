@@ -15,6 +15,10 @@ var (
 	// Delete.
 	ErrInvalidID = errors.New("models: ID provided was invalid")
 	userPwPepper = "secret-random-string"
+	//ErrInvalidPassword is returned when an invalid password is used when
+	//attempting to authenticate a user.
+	ErrInvalidPassword = errors.New(
+		"models: incorrect password provided")
 )
 
 // User models a user
@@ -128,4 +132,27 @@ func first(db *gorm.DB, dst interface{}) error {
 		return ErrNotFound
 	}
 	return err
+}
+
+// Authenticate can be used to authenticate a user with the provided email
+// address and password. If the email address provided is invalid, this will
+// return nil, ErrNotFound. If the password provided is invalid, this will
+// return nil, ErrInvalidPassword. If the email and password are both valid,
+// this will return user, nil. Otherwise if another error is encountered this
+// will return nil, error.
+func (us *UserService) Authenticate(email, password string) (*User, error) {
+	foundUser, err := us.ByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+	err = bcrypt.CompareHashAndPassword(
+		[]byte(foundUser.PasswordHash), []byte(password+userPwPepper))
+	switch err {
+	case nil:
+		return foundUser, nil
+	case bcrypt.ErrMismatchedHashAndPassword:
+		return nil, ErrInvalidPassword
+	default:
+		return nil, err
+	}
 }
