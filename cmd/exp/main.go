@@ -25,33 +25,23 @@ func main() {
 
 	// Create a user
 	user := models.User{
-		Name:  "Michael Scott",
-		Email: "michael@dundermifflin.com",
+		Name:     "Michael Scott",
+		Email:    "michael@dundermifflin.com",
+		Password: "bestboss",
 	}
 	err = us.Create(&user)
 	panicOn(err)
 
-	// Get user 1.
-	foundUser, err := us.ByID(1)
-	panicOn(err)
-	fmt.Println(foundUser)
-
-	// Update a user.
-	user.Name = "Updated Name"
-	err = us.Update(&user)
-	panicOn(err)
-	foundUser, err = us.ByEmail("michael@dundermifflin.com")
-	panicOn(err)
-	fmt.Println(foundUser)
-
-	// Delete a user.
-	err = us.Delete(foundUser.ID)
-	panicOn(err)
-	_, err = us.ByID(foundUser.ID)
-	if err != models.ErrNotFound {
-		panic("user was not deleted!")
+	// Verify that the user has a Remember and RememberHash.
+	fmt.Printf("%+v\n", user)
+	if user.Remember == "" {
+		panic("Invalid remember token")
 	}
 
+	// Now verify that we can lookup a user with that remember token.
+	user2, err := us.ByRemember(user.Remember)
+	panicOn(err)
+	fmt.Printf("%+v\n", *user2)
 }
 
 func panicOn(err error) {
