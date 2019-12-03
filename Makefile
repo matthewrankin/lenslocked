@@ -8,6 +8,7 @@ help:
 	@echo "  local         Build for local development OS"
 	@echo "  pg            Start postgres in Docker on port 5432"
 	@echo "  psql          Connect using psql (password: docker)"
+	@echo "  delete        Delete database"
 
 check:
 	@echo 'Formatting, linting, vetting, and testing Go code'
@@ -38,3 +39,7 @@ pg:
 
 psql:
 	psql -h localhost -U postgres -d postgres
+
+delete:
+	go build -o dist/delete cmd/delete/*
+	dist/delete
