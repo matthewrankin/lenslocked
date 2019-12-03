@@ -86,7 +86,7 @@ func (us *UserService) Delete(id uint) error {
 
 // DestructiveReset drops the user table and rebuilds it.
 func (us *UserService) DestructiveReset() error {
-	us.db.DropTableIfExists(&User{}).Error
+	err := us.db.DropTableIfExists(&User{}).Error
 	if err != nil {
 		return err
 	}

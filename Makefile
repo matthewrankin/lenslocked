@@ -23,10 +23,10 @@ cover:
 
 #  Compile the project to run locally on your machine
 local:
-	go build -o dist/todobackend .
+	go build -o dist/lenslocked .
 
 dev: local
-	dist/todobackend
+	dist/lenslocked
 
 deploy:
 	go mod tidy
