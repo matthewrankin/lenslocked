@@ -12,6 +12,7 @@ import (
 )
 
 var (
+	_ UserService = &userService{}
 	// ErrNotFound is returned when a resource cannot be found in the database.
 	ErrNotFound = errors.New("models: resource not found")
 	// ErrInvalidID is returned when an invalid ID is provided to a method like
@@ -92,18 +93,24 @@ type User struct {
 	RememberHash string `gorm:"not null;unique_index"`
 }
 
-// UserService provides the database service for a user.
-type UserService struct {
+// UserService is a set of methods used to manipulate and work with the user
+// model.
+type UserService interface {
+	Authenticate(email, password string) (*User, error)
+	UserDB
+}
+
+type userService struct {
 	UserDB
 }
 
 // NewUserService creates a new UserService.
-func NewUserService(connectionInfo string) (*UserService, error) {
+func NewUserService(connectionInfo string) (UserService, error) {
 	ug, err := newUserGorm(connectionInfo)
 	if err != nil {
 		return nil, err
 	}
-	return &UserService{
+	return &userService{
 		UserDB: userValidator{
 			UserDB: ug,
 		},
@@ -215,7 +222,7 @@ func first(db *gorm.DB, dst interface{}) error {
 // return nil, ErrInvalidPassword. If the email and password are both valid,
 // this will return user, nil. Otherwise if another error is encountered this
 // will return nil, error.
-func (us *UserService) Authenticate(email, password string) (*User, error) {
+func (us *userService) Authenticate(email, password string) (*User, error) {
 	foundUser, err := us.ByEmail(email)
 	if err != nil {
 		return nil, err
