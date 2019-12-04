@@ -80,6 +80,14 @@ type userValidator struct {
 	hmac hash.HMAC
 }
 
+func (uv *userValidator) hmacRemember(user *User) error {
+	if user.Remember == "" {
+		return nil
+	}
+	user.RememberHash = uv.hmac.Hash(user.Remember)
+	return nil
+}
+
 // User models a user
 type User struct {
 	gorm.Model
@@ -150,14 +158,24 @@ func (ug *userGorm) ByEmail(email string) (*User, error) {
 
 // Update will hash a remember token if it is provided.
 func (uv *userValidator) Update(user *User) error {
-	if err := runUserValFns(user, uv.bcryptPassword); err != nil {
+	err := runUserValFns(user, uv.bcryptPassword, uv.hmacRemember)
+	if err != nil {
 		return err
 	}
-
-	if user.Remember != "" {
-		user.RememberHash = uv.hmac.Hash(user.Remember)
-	}
 	return uv.UserDB.Update(user)
+}
+
+func (uv *userValidator) setRememberIfUnset(user *User) error {
+	if user.Remember != "" {
+		return nil
+
+	}
+	token, err := rand.RememberToken()
+	if err != nil {
+		return err
+	}
+	user.Remember = token
+	return nil
 }
 
 // Update will update the provided user with all of the data in the provided
@@ -168,8 +186,11 @@ func (ug *userGorm) Update(user *User) error {
 
 // Delete will delete the user with the provided ID
 func (uv *userValidator) Delete(id uint) error {
-	if id == 0 {
-		return ErrInvalidID
+	var user User
+	user.ID = id
+	err := runUserValFns(&user, uv.idGreaterThan(0))
+	if err != nil {
+		return err
 	}
 	return uv.UserDB.Delete(id)
 }
@@ -192,18 +213,21 @@ func (ug *userGorm) DestructiveReset() error {
 // Create will create the provided user and backfill data like the ID,
 // CreatedAt, and UpdatedAt fields.
 func (uv *userValidator) Create(user *User) error {
-	if err := runUserValFns(user, uv.bcryptPassword); err != nil {
+	err := runUserValFns(
+		user, uv.bcryptPassword, uv.setRememberIfUnset, uv.hmacRemember)
+	if err != nil {
 		return err
 	}
-	if user.Remember == "" {
-		token, err := rand.RememberToken()
-		if err != nil {
-			return err
-		}
-		user.Remember = token
-	}
-	user.RememberHash = uv.hmac.Hash(user.Remember)
 	return uv.UserDB.Create(user)
+}
+
+func (uv *userValidator) idGreaterThan(n uint) userValFn {
+	return userValFn(func(user *User) error {
+		if user.ID <= n {
+			return ErrInvalidID
+		}
+		return nil
+	})
 }
 
 // Create will create the provided user and backfill data like the ID,
@@ -257,8 +281,13 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 // ByRemember looks up a user with the given remember token and returns that
 // user. This method will handle hashing the token for us.
 func (uv *userValidator) ByRemember(token string) (*User, error) {
-	rememberHash := uv.hmac.Hash(token)
-	return uv.UserDB.ByRemember(rememberHash)
+	user := User{
+		Remember: token,
+	}
+	if err := runUserValFns(&user, uv.hmacRemember); err != nil {
+		return nil, err
+	}
+	return uv.UserDB.ByRemember(user.RememberHash)
 }
 
 // ByRemember looks up a user with the given remember token and returns that
