@@ -20,6 +20,12 @@ type PublicError interface {
 	Public() string
 }
 
+// Alert is used to render Bootstrap Alert messages in templates
+type Alert struct {
+	Level   string
+	Message string
+}
+
 // Data is the top level structure that views expect data // to come in.
 type Data struct {
 	Alert *Alert
@@ -41,8 +47,10 @@ func (d *Data) SetAlert(err error) {
 	}
 }
 
-// Alert is used to render Bootstrap Alert messages in templates
-type Alert struct {
-	Level   string
-	Message string
+// AlertError sets a cusotm error message.
+func (d *Data) AlertError(msg string) {
+	d.Alert = &Alert{
+		Level:   AlertLvlError,
+		Message: msg,
+	}
 }
