@@ -86,11 +86,6 @@ type UserDB interface {
 	Create(user *User) error
 	Update(user *User) error
 	Delete(id uint) error
-	// Used to close a DB connection.
-	Close() error
-	// Migration helpers
-	AutoMigrate() error
-	DestructiveReset() error
 }
 
 // userGorm represents our database interaction layer and implements the
@@ -156,11 +151,6 @@ func NewUserService(db *gorm.DB) UserService {
 	}
 }
 
-// Close the UserService database connection.
-func (ug *userGorm) Close() error {
-	return ug.db.Close()
-}
-
 // ByID will look up a user with the provided ID.  If the user is found, we
 // will return a nil error If the user is not found, we will return
 // ErrNotFound. If there is another error, we will return an error with more
@@ -174,7 +164,8 @@ func (ug *userGorm) ByID(id uint) (*User, error) {
 	return &user, err
 }
 
-// ByEmail will normalize an email address before passing it on to the database layer to perform the query.
+// ByEmail will normalize an email address before passing it on to the database
+// layer to perform the query.
 func (uv *userValidator) ByEmail(email string) (*User, error) {
 	user := User{
 		Email: email,
@@ -254,15 +245,6 @@ func (ug *userGorm) Delete(id uint) error {
 	return ug.db.Delete(&user).Error
 }
 
-// DestructiveReset drops the user table and rebuilds it.
-func (ug *userGorm) DestructiveReset() error {
-	err := ug.db.DropTableIfExists(&User{}).Error
-	if err != nil {
-		return err
-	}
-	return ug.AutoMigrate()
-}
-
 // Create will create the provided user and backfill data like the ID,
 // CreatedAt, and UpdatedAt fields.
 func (uv *userValidator) Create(user *User) error {
@@ -299,14 +281,6 @@ func (uv *userValidator) idGreaterThan(n uint) userValFn {
 // CreatedAt, and UpdatedAt fields.
 func (ug *userGorm) Create(user *User) error {
 	return ug.db.Create(user).Error
-}
-
-// AutoMigrate will attempt to automatically migrate the users table.
-func (ug *userGorm) AutoMigrate() error {
-	if err := ug.db.AutoMigrate(&User{}).Error; err != nil {
-		return err
-	}
-	return nil
 }
 
 // first will query using the provided gorm.DB and it will get the first item

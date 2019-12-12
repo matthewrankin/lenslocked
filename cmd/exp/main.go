@@ -20,8 +20,8 @@ func main() {
 		host, port, user, password, dbname)
 	services, err := models.NewServices(dbInfo)
 	panicOn(err)
-	defer services.User.Close()
-	services.User.DestructiveReset()
+	defer services.Close()
+	services.DestructiveReset()
 
 	// Create a user
 	user := models.User{

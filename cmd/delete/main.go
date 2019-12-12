@@ -22,6 +22,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer services.User.Close()
-	services.User.DestructiveReset()
+	defer services.Close()
+	services.DestructiveReset()
 }
