@@ -18,10 +18,10 @@ func main() {
 	dbInfo := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
-	us, err := models.NewUserService(dbInfo)
+	services, err := models.NewServices(dbInfo)
 	if err != nil {
 		panic(err)
 	}
-	defer us.Close()
-	us.DestructiveReset()
+	defer services.User.Close()
+	services.User.DestructiveReset()
 }

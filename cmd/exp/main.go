@@ -18,10 +18,10 @@ func main() {
 	dbInfo := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
-	us, err := models.NewUserService(dbInfo)
+	services, err := models.NewServices(dbInfo)
 	panicOn(err)
-	defer us.Close()
-	us.DestructiveReset()
+	defer services.User.Close()
+	services.User.DestructiveReset()
 
 	// Create a user
 	user := models.User{
@@ -29,7 +29,7 @@ func main() {
 		Email:    "michael@dundermifflin.com",
 		Password: "bestboss",
 	}
-	err = us.Create(&user)
+	err = services.User.Create(&user)
 	panicOn(err)
 
 	// Verify that the user has a Remember and RememberHash.
@@ -39,7 +39,7 @@ func main() {
 	}
 
 	// Now verify that we can lookup a user with that remember token.
-	user2, err := us.ByRemember(user.Remember)
+	user2, err := services.User.ByRemember(user.Remember)
 	panicOn(err)
 	fmt.Printf("%+v\n", *user2)
 }

@@ -99,17 +99,6 @@ type userGorm struct {
 	db *gorm.DB
 }
 
-func newUserGorm(connectionInfo string) (*userGorm, error) {
-	db, err := gorm.Open("postgres", connectionInfo)
-	if err != nil {
-		return nil, err
-	}
-	db.LogMode(true)
-	return &userGorm{
-		db: db,
-	}, nil
-}
-
 // userValidator is our validation layer that validates and normalizes data
 // before passing it on to the next UserDB in our interface chain.
 type userValidator struct {
@@ -158,16 +147,13 @@ type userService struct {
 }
 
 // NewUserService creates a new UserService.
-func NewUserService(connectionInfo string) (UserService, error) {
-	ug, err := newUserGorm(connectionInfo)
-	if err != nil {
-		return nil, err
-	}
+func NewUserService(db *gorm.DB) UserService {
+	ug := &userGorm{db}
 	hmac := hash.NewHMAC(hmacSecretKey)
 	uv := newUserValidator(ug, hmac)
 	return &userService{
 		UserDB: uv,
-	}, nil
+	}
 }
 
 // Close the UserService database connection.
