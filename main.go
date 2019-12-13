@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/matthewrankin/lenslocked/controllers"
+	"github.com/matthewrankin/lenslocked/middleware"
 	"github.com/matthewrankin/lenslocked/models"
 
 	"github.com/gorilla/mux"
@@ -36,6 +37,12 @@ func main() {
 	usersC := controllers.NewUsers(services.User)
 	galleriesC := controllers.NewGalleries(services.Gallery)
 
+	requireUserMw := middleware.RequireUser{
+		UserService: services.User,
+	}
+	newGallery := requireUserMw.Apply(galleriesC.New)
+	createGallery := requireUserMw.ApplyFn(galleriesC.Create)
+
 	r := mux.NewRouter()
 	r.Handle("/", staticC.Home).Methods("GET")
 	r.Handle("/contact", staticC.Contact).Methods("GET")
@@ -44,8 +51,8 @@ func main() {
 	r.Handle("/login", usersC.LoginView).Methods("GET")
 	r.HandleFunc("/login", usersC.Login).Methods("POST")
 	r.HandleFunc("/cookietest", usersC.CookieTest).Methods("GET")
-	r.Handle("/galleries/new", galleriesC.New).Methods("GET")
-	r.HandleFunc("/galleries", galleriesC.Create).Methods("POST")
+	r.Handle("/galleries/new", newGallery).Methods("GET")
+	r.HandleFunc("/galleries", createGallery).Methods("POST")
 	fmt.Println("Starting the server on :3000...")
 	http.ListenAndServe(":3000", r)
 }
