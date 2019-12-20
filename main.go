@@ -56,7 +56,10 @@ func main() {
 	// Gallery routes
 	r.Handle("/galleries/new", newGallery).Methods("GET")
 	r.HandleFunc("/galleries", createGallery).Methods("POST")
-	r.HandleFunc("/galleries/{id:[0-9]+}", galleriesC.Show).Methods("GET").Name(controllers.ShowGallery)
+	r.HandleFunc("/galleries/{id:[0-9]+}",
+		galleriesC.Show).Methods("GET").Name(controllers.ShowGallery)
+	r.HandleFunc("/galleries/{id:[0-9]+}/edit",
+		requireUserMw.ApplyFn(galleriesC.Edit)).Methods("GET")
 
 	// Start the server.
 	fmt.Println("Starting the server on :3000...")
