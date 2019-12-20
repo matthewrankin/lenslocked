@@ -60,6 +60,8 @@ func main() {
 		galleriesC.Show).Methods("GET").Name(controllers.ShowGallery)
 	r.HandleFunc("/galleries/{id:[0-9]+}/edit",
 		requireUserMw.ApplyFn(galleriesC.Edit)).Methods("GET")
+	r.HandleFunc("/galleries/{id:[0-9]+}/update",
+		requireUserMw.ApplyFn(galleriesC.Update)).Methods("POST")
 
 	// Start the server.
 	fmt.Println("Starting the server on :3000...")
