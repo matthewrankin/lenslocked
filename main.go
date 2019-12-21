@@ -56,6 +56,8 @@ func main() {
 	// Gallery routes
 	r.Handle("/galleries/new", newGallery).Methods("GET")
 	r.HandleFunc("/galleries", createGallery).Methods("POST")
+	r.Handle("/galleries",
+		requireUserMw.ApplyFn(galleriesC.Index)).Methods("GET")
 	r.HandleFunc("/galleries/{id:[0-9]+}",
 		galleriesC.Show).Methods("GET").Name(controllers.ShowGallery)
 	r.HandleFunc("/galleries/{id:[0-9]+}/edit",
