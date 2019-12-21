@@ -1,6 +1,10 @@
 package views
 
-import "log"
+import (
+	"log"
+
+	"github.com/matthewrankin/lenslocked/models"
+)
 
 // Alert levels allowed.
 const (
@@ -29,6 +33,7 @@ type Alert struct {
 // Data is the top level structure that views expect data // to come in.
 type Data struct {
 	Alert *Alert
+	User  *models.User
 	Yield interface{}
 }
 
