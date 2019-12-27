@@ -13,8 +13,9 @@ const (
 // Gallery models a gallery resource.
 type Gallery struct {
 	gorm.Model
-	UserID uint   `gorm:"not_null;index"`
-	Title  string `gorm:"not_null"`
+	UserID uint     `gorm:"not_null;index"`
+	Title  string   `gorm:"not_null"`
+	Images []string `gorm:"-"`
 }
 
 // GalleryService provides the interface the gallery service.

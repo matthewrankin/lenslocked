@@ -10,6 +10,7 @@ import (
 // ImageService provides the interface for the image service.
 type ImageService interface {
 	Create(galleryID uint, r io.Reader, filename string) error
+	ByGalleryID(galleryID uint) ([]string, error)
 }
 
 // NewImageService returns a new image service.
@@ -34,6 +35,20 @@ func (is *imageService) Create(galleryID uint, r io.Reader, filename string) err
 		return err
 	}
 	return nil
+}
+
+// ByGalleryID returns all the image paths for the given gallery ID.
+func (is *imageService) ByGalleryID(galleryID uint) ([]string, error) {
+	path := is.imagePath(galleryID)
+	strings, err := filepath.Glob(filepath.Join(path, "*"))
+	if err != nil {
+		return nil, err
+	}
+	return strings, nil
+}
+
+func (is *imageService) imagePath(galleryID uint) string {
+	return filepath.Join("images", "galleries", fmt.Sprintf("%v", galleryID))
 }
 
 func (is *imageService) mkImagePath(galleryID uint) (string, error) {
